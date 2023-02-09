@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  app:
+    container_name: app
+    build: .
+    command: "/opt/venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    restart: always
+  redis:
+    image: redis
+    ports:
+      - 6379:6379
+    entrypoint: redis-server --appendonly yes
+    env_file:
+      - .env
+  celery_worker:
+    container_name: celery_worker
+    build: .
+    command: "/opt/venv/bin/celery --app worker.celery_app worker --loglevel=info"
+    volumes:
+      - .:/app
+    depends_on:
+      - app
+      - redis
+  
+  
